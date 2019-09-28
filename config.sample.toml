@@ -1,0 +1,6 @@
+[Database]
+DriverName = "sqlite3"
+Dsn = "./database.sqlite"
+[Mqtt]
+URL = "HOST:PORT"
+Topic = "owntracks/#"
