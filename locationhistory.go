@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	locationhistory "github.com/dfleischhacker/locationhistory/locationdb"
+	locationhistory "github.com/dfleischhacker/locationhistory-collector/locationdb"
 
-	"github.com/dfleischhacker/locationhistory/configuration"
+	"github.com/dfleischhacker/locationhistory-collector/configuration"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	_ "github.com/mattn/go-sqlite3"

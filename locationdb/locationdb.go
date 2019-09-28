@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/dfleischhacker/locationhistory/configuration"
+	"github.com/dfleischhacker/locationhistory-collector/configuration"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	log "github.com/sirupsen/logrus"
 )
