@@ -26,6 +26,11 @@ type DatabaseConfig struct {
 type Configuration struct {
 	Mqtt     MqttConfig
 	Database DatabaseConfig
+	Map      MapConfig
+}
+
+type MapConfig struct {
+	Token string
 }
 
 // LoadConfiguration loads a config file from the given path and returns the resulting Configuration

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dfleischhacker/locationhistory-collector/importer"
+	"github.com/dfleischhacker/locationhistory-collector/rest"
 	"github.com/dfleischhacker/locationhistory-collector/utils"
 	"io/ioutil"
 	"os"
@@ -97,7 +98,10 @@ func main() {
 				}
 				topic := c.Args().Get(0)
 				fileName := c.Args().Get(1)
-				waypoints, err := history.locationDatabase.GetWaypoints(topic)
+				startTime := time.Unix(0, 0)
+				endTime := time.Now()
+				maxCount := 300
+				waypoints, err := history.locationDatabase.GetWaypoints(topic, &startTime, &endTime, &maxCount)
 				if err != nil {
 					return err
 				}
@@ -197,6 +201,8 @@ func (lh *LocationHistory) Run() {
 			break
 		}
 	}
+
+	rest.NewRestService(lh.configuration, &lh.locationDatabase, 10000)
 
 	select {}
 }

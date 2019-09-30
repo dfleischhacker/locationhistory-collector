@@ -4,3 +4,5 @@ Dsn = "./database.sqlite"
 [Mqtt]
 URL = "HOST:PORT"
 Topic = "owntracks/#"
+[Map]
+Token=""

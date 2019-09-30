@@ -85,12 +85,30 @@ func (ldb *LocationDatabase) AddWaypoint(waypoint Waypoint) {
 }
 
 // GetWaypoints returns all waypoints for a given topic name
-func (ldb *LocationDatabase) GetWaypoints(topic string) ([]Waypoint, error) {
-	stmt, err := ldb.db.Prepare(`SELECT * FROM WAYPOINTS WHERE topic = ? ORDER BY time ASC`)
+func (ldb *LocationDatabase) GetWaypoints(topic string, startRef *time.Time, endRef *time.Time, maxCountRef *int) ([]Waypoint, error) {
+	var start time.Time
+	var end time.Time
+	var maxCount int
+	if startRef == nil {
+		start = time.Unix(0, 0)
+	} else {
+		start = *startRef
+	}
+	if endRef == nil {
+		end = time.Now()
+	} else {
+		end = *endRef
+	}
+	if maxCountRef == nil {
+		maxCount = 5000
+	} else {
+		maxCount = *maxCountRef
+	}
+	stmt, err := ldb.db.Prepare(`SELECT * FROM WAYPOINTS WHERE topic = ? AND Time >= ? AND Time <= ? ORDER BY time ASC LIMIT ?`)
 	if err != nil {
 		return nil, err
 	}
-	rows, err := stmt.Query(topic)
+	rows, err := stmt.Query(topic, start, end, maxCount)
 
 	if err != nil {
 		return nil, err

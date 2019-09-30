@@ -1,20 +1,55 @@
 package rest
 
 import (
+	"github.com/dfleischhacker/locationhistory-collector/configuration"
 	locationhistory "github.com/dfleischhacker/locationhistory-collector/locationdb"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type LocationHistoryService struct {
 	ldb *locationhistory.LocationDatabase
 }
 
-func getData(w http.ResponseWriter, req *http.Request) {
+func NewRestService(config *configuration.Configuration, ldb *locationhistory.LocationDatabase, port int) {
+	router := http.NewServeMux()
 
-}
+	router.HandleFunc("/locations/", func(writer http.ResponseWriter, request *http.Request) {
+		topic := request.URL.Path[11:]
+		log.Infof("Retrieving data for topic '%s'", topic)
+		startTime := time.Date(2015, time.February, 15, 0, 0, 0, 0, time.Local)
+		endTime := time.Date(2015, time.August, 27, 0, 0, 0, 0, time.Local)
+		maxCount := 3000
+		waypoints, err := ldb.GetWaypoints(topic, &startTime, &endTime, &maxCount)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		log.Infof("Got %d waypoints", len(waypoints))
+		gpxDoc := GenerateGpx(waypoints)
+		bytes, err := GetGpxStream(gpxDoc)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		_, err = writer.Write(bytes)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})
 
-func NewRestService(ldb *locationhistory.LocationDatabase) {
-	http.HandleFunc("/", getData)
-	log.Fatal(http.ListenAndServe(":10000", nil))
+	router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		log.Info("Got request for /")
+		_, err := writer.Write(GetIndexFile(config.Map.Token))
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})
+
+	log.Infof("Starting up server on port %d", port)
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), router))
 }
