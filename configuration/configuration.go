@@ -35,7 +35,9 @@ type Configuration struct {
 
 // The MapConfig used for showing the waypoint map on the web UI
 type MapConfig struct {
-	Token string
+	Token       string
+	BindAddress string
+	Port        int
 }
 
 // LoadConfiguration loads a config file from the given path and returns the resulting Configuration

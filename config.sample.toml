@@ -8,3 +8,5 @@ Username = ""
 Password = ""
 [Map]
 Token=""
+BindAddress="localhost"
+Port=10000

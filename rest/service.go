@@ -14,7 +14,7 @@ type LocationHistoryService struct {
 	ldb *locationhistory.LocationDatabase
 }
 
-func NewRestService(config *configuration.Configuration, ldb *locationhistory.LocationDatabase, port int) {
+func NewRestService(config *configuration.Configuration, ldb *locationhistory.LocationDatabase) {
 	router := http.NewServeMux()
 
 	router.HandleFunc("/locations/", func(writer http.ResponseWriter, request *http.Request) {
@@ -51,6 +51,6 @@ func NewRestService(config *configuration.Configuration, ldb *locationhistory.Lo
 		}
 	})
 
-	log.Infof("Starting up server on port %d", port)
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), router))
+	log.Infof("Starting up server on port %d", config.Map.Port)
+	log.Fatal(http.ListenAndServe(config.Map.BindAddress+":"+strconv.Itoa(config.Map.Port), router))
 }

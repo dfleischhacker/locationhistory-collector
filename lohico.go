@@ -272,7 +272,7 @@ func (lh *LocationHistory) Run() {
 		}
 	}
 
-	rest.NewRestService(lh.configuration, &lh.locationDatabase, 10000)
+	rest.NewRestService(lh.configuration, &lh.locationDatabase)
 
 	select {}
 }
