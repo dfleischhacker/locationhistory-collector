@@ -1,15 +1,18 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"github.com/dfleischhacker/locationhistory-collector/importer"
-	"github.com/dfleischhacker/locationhistory-collector/rest"
-	"github.com/dfleischhacker/locationhistory-collector/utils"
 	"io/ioutil"
 	"os"
 	"sort"
 	"time"
+
+	"github.com/dfleischhacker/locationhistory-collector/importer"
+	"github.com/dfleischhacker/locationhistory-collector/rest"
+	"github.com/dfleischhacker/locationhistory-collector/utils"
 
 	"github.com/urfave/cli"
 
@@ -176,18 +179,85 @@ func NewLocationHistory(configFile string) LocationHistory {
 
 	log.Debug("Connecting to MQTT broker")
 	clientOptions := mqtt.NewClientOptions().AddBroker(history.configuration.Mqtt.URL)
+	clientOptions.SetPingTimeout(1 * time.Second)
+	clientOptions.SetAutoReconnect(true)
+	clientOptions.SetCleanSession(true)
+	clientOptions.SetKeepAlive(10 * time.Second)
+	clientOptions.SetConnectTimeout(10 * time.Second)
+
+	if history.configuration.Mqtt.Username != "" {
+		clientOptions.SetUsername(history.configuration.Mqtt.Username)
+	}
+	if history.configuration.Mqtt.Password != "" {
+		clientOptions.SetPassword(history.configuration.Mqtt.Password)
+	}
+
+	tlsConfig, err := NewTLSConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	clientOptions.SetTLSConfig(tlsConfig)
 	history.mqttClient = mqtt.NewClient(clientOptions)
 
 	return history
 }
 
+// NewTLSConfig sets up a TLS configuration for connecting to the server
+func NewTLSConfig() (*tls.Config, error) {
+	// use certs from system
+	systemCerts, err := x509.SystemCertPool()
+	if err != nil {
+		log.Error("Unable to get system certs")
+		return nil, err
+	}
+
+	/*pem, err := ioutil.ReadFile("/etc/ssl/cert.pem")
+	if err != nil {
+		log.Error("Unable to read pem file")
+		return nil, err
+	}
+
+	certpool.AppendCertsFromPEM(pem)*/
+
+	// Import client certificate/key pair, leave this in for now
+	/*cert, err := tls.LoadX509KeyPair("CLIENT CERT", "CLIENT KEY")
+	if err != nil {
+		log.Error("Unable to load key pair")
+		return nil, err
+	}
+	*/
+
+	// Create tls.Config with desired tls properties
+	return &tls.Config{
+
+		RootCAs: systemCerts,
+
+		// Client certs for sender, add loaded certs here later
+		Certificates: []tls.Certificate{},
+
+		PreferServerCipherSuites: true,
+
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+		},
+	}, nil
+}
+
 // Run starts the connection to the MQTT broker and writes retrieved into the database
 func (lh *LocationHistory) Run() {
-	lh.mqttClient.Connect()
-	log.Debug("Connected to MQTT broker")
-
-	for !lh.mqttClient.IsConnected() {
+	mqtt.DEBUG = log.StandardLogger()
+	mqtt.WARN = log.StandardLogger()
+	mqtt.ERROR = log.StandardLogger()
+	mqtt.CRITICAL = log.StandardLogger()
+	if token := lh.mqttClient.Connect(); token.Wait() && token.Error() != nil {
+		panic(token.Error())
 	}
+
+	log.Debug("Connected to MQTT broker")
 
 	for {
 		token := lh.mqttClient.Subscribe(lh.configuration.Mqtt.Topic, byte(1), lh.handleLocationMessage)

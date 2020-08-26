@@ -36,6 +36,12 @@ func GetIndexFile(token string) []byte {
     var runLayer = omnivore.gpx('/locations/owntracks/daniel/70A43116-AF9A-4570-9040-9262AA75CCB9')
         .on('ready', function() {
             map.fitBounds(runLayer.getBounds());
+			runLayer.eachLayer(function(layer) {
+            // See the .bindPopup documentation for full details. This
+            // dataset has a property called name: your dataset might not,
+            // so inspect it and customize to taste.
+            layer.bindPopup(layer.feature.properties.time);
+        });
         })
         .addTo(map);
 </script>

@@ -1,12 +1,13 @@
 package rest
 
 import (
-	"github.com/dfleischhacker/locationhistory-collector/configuration"
-	locationhistory "github.com/dfleischhacker/locationhistory-collector/locationdb"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/dfleischhacker/locationhistory-collector/configuration"
+	locationhistory "github.com/dfleischhacker/locationhistory-collector/locationdb"
+	log "github.com/sirupsen/logrus"
 )
 
 type LocationHistoryService struct {
@@ -19,9 +20,9 @@ func NewRestService(config *configuration.Configuration, ldb *locationhistory.Lo
 	router.HandleFunc("/locations/", func(writer http.ResponseWriter, request *http.Request) {
 		topic := request.URL.Path[11:]
 		log.Infof("Retrieving data for topic '%s'", topic)
-		startTime := time.Date(2015, time.February, 15, 0, 0, 0, 0, time.Local)
-		endTime := time.Date(2015, time.August, 27, 0, 0, 0, 0, time.Local)
-		maxCount := 3000
+		startTime := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.Local)
+		endTime := time.Date(2020, time.August, 27, 0, 0, 0, 0, time.Local)
+		maxCount := 100000
 		waypoints, err := ldb.GetWaypoints(topic, &startTime, &endTime, &maxCount)
 		if err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)

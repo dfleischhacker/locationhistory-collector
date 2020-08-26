@@ -13,6 +13,10 @@ type MqttConfig struct {
 	URL string
 	// Topic to listen for location updates
 	Topic string
+	// Username to use when connecting
+	Username string
+	// Password for the user
+	Password string
 }
 
 // The DatabaseConfig defines the database used to store location data
@@ -29,6 +33,7 @@ type Configuration struct {
 	Map      MapConfig
 }
 
+// The MapConfig used for showing the waypoint map on the web UI
 type MapConfig struct {
 	Token string
 }
