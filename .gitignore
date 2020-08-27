@@ -19,3 +19,8 @@
 *.sqlite
 *.toml
 !config.sample.toml
+locationhistory
+locationhistory-collector
+locationhistory.code-workspace
+lohico
+out.json
