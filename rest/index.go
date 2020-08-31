@@ -2,7 +2,7 @@ package rest
 
 import "strings"
 
-func GetIndexFile(token string) []byte {
+func GetIndexFile() []byte {
 	return []byte(strings.Replace(`
 <!DOCTYPE html>
 <html>
@@ -11,6 +11,7 @@ func GetIndexFile(token string) []byte {
     <title>GPX trackpoints and waypoints</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.mapbox.com/mapbox.js/v3.2.0/mapbox.js'></script>
+    <script src='https://code.jquery.com/jquery-3.5.1.min.js'></script>
     <link href='https://api.mapbox.com/mapbox.js/v3.2.0/mapbox.css' rel='stylesheet' />
     <style>
         body { margin:0; padding:0; }
@@ -24,7 +25,15 @@ func GetIndexFile(token string) []byte {
 <div id='map'></div>
 
 <script>
-    L.mapbox.accessToken = '__TOKEN__';
+var token;
+$(document).ready(function() {
+    $.get("/token", function(data) {
+        L.mapbox.accessToken = data;
+        initMap();
+    })
+});
+
+    function initMap() {
     var map = L.mapbox.map('map')
         .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
 
@@ -44,11 +53,12 @@ func GetIndexFile(token string) []byte {
         });
         })
         .addTo(map);
+    }
 </script>
 
 </body>
 </html>
 
 
-`, "__TOKEN__", token, 1))
+`, "__TOKEN__", "", 1))
 }

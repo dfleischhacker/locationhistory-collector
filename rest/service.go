@@ -7,6 +7,7 @@ import (
 
 	"github.com/dfleischhacker/locationhistory-collector/configuration"
 	locationhistory "github.com/dfleischhacker/locationhistory-collector/locationdb"
+	"github.com/dfleischhacker/locationhistory-collector/rest/static"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -22,9 +23,9 @@ func NewRestService(config *configuration.Configuration, ldb *locationhistory.Lo
 	router.HandleFunc("/locations/", func(writer http.ResponseWriter, request *http.Request) {
 		topic := request.URL.Path[11:]
 		log.Infof("Retrieving data for topic '%s'", topic)
-		startTime := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.Local)
+		startTime := time.Date(2015, time.January, 1, 0, 0, 0, 0, time.Local)
 		endTime := time.Date(2020, time.August, 27, 0, 0, 0, 0, time.Local)
-		maxCount := 100000
+		maxCount := 1000000
 		waypoints, err := ldb.GetWaypoints(topic, &startTime, &endTime, &maxCount)
 		if err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
@@ -44,9 +45,20 @@ func NewRestService(config *configuration.Configuration, ldb *locationhistory.Lo
 		}
 	})
 
-	router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+	router.Handle("/", http.FileServer(static.AssetFile()))
+
+	/*router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		log.Info("Got request for /")
-		_, err := writer.Write(GetIndexFile(config.Map.Token))
+		_, err := writer.Write(GetIndexFile())
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})*/
+
+	router.HandleFunc("/token", func(writer http.ResponseWriter, request *http.Request) {
+		log.Info("Got token request")
+		_, err := writer.Write(GetMapboxToken(config.Map.Token))
 		if err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 			return
@@ -55,4 +67,9 @@ func NewRestService(config *configuration.Configuration, ldb *locationhistory.Lo
 
 	log.Infof("Starting up server on port %d", config.Map.Port)
 	log.Fatal(http.ListenAndServe(config.Map.BindAddress+":"+strconv.Itoa(config.Map.Port), router))
+}
+
+// GetMapboxToken returns the mapbox token
+func GetMapboxToken(token string) []byte {
+	return []byte(token)
 }
