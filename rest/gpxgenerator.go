@@ -1,10 +1,11 @@
 package rest
 
 import (
-	"github.com/dfleischhacker/locationhistory-collector/locationdb"
+	locationhistory "github.com/dfleischhacker/locationhistory-collector/locationdb"
 	"github.com/tkrajina/gpxgo/gpx"
 )
 
+// GenerateGpx creates a GPX document from the given waypoints
 func GenerateGpx(waypoints []locationhistory.Waypoint) *gpx.GPX {
 	gpxDoc := gpx.GPX{}
 	track := gpx.GPXTrack{}
@@ -23,6 +24,7 @@ func GenerateGpx(waypoints []locationhistory.Waypoint) *gpx.GPX {
 	return &gpxDoc
 }
 
+// GetGpxStream creates an XML byte stream for the given GPX document
 func GetGpxStream(gpxDoc *gpx.GPX) ([]byte, error) {
 	return gpxDoc.ToXml(gpx.ToXmlParams{Version: "1.1", Indent: true})
 }
