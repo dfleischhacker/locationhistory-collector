@@ -10,10 +10,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// LocationHistoryService provides the data structures for the history service
 type LocationHistoryService struct {
 	ldb *locationhistory.LocationDatabase
 }
 
+// NewRestService returns a new REST service using the given config and location database
 func NewRestService(config *configuration.Configuration, ldb *locationhistory.LocationDatabase) {
 	router := http.NewServeMux()
 
